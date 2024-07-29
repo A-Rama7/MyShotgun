@@ -1,0 +1,95 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:@localhost:3306/myshotgun"
+}
+
+model Organizer {
+  id                Int       @id @default(autoincrement())
+  image             Bytes?
+  organisation_name String
+  first_name        String
+  last_name         String
+  email             String    @unique
+  phone             String?
+  password          String
+  created_at        DateTime  @default(now())
+  subscribers       Int?
+  events            Event[]
+  subscriptions     Subscription[]
+}
+
+model Subscription {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  organizer_id Int
+  user        User      @relation(fields: [user_id], references: [id])
+  organizer   Organizer @relation(fields: [organizer_id], references: [id])
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  image         Bytes?
+  first_name    String
+  last_name     String
+  email         String        @unique
+  password      String
+  created_at    DateTime      @default(now())
+  event_id      Int?
+  subscription  String?
+  subscriptions Subscription[]
+  bookedTickets BookedTicket[]
+  attendees     Attendee[]
+}
+
+model Event {
+  id          Int        @id @default(autoincrement())
+  image       Bytes?
+  name        String
+  date        DateTime
+  location    String?
+  city        String
+  vibe        String?
+  description String
+  organizer_id Int
+  interested  Int?
+  created_at  DateTime   @default(now())
+  organizer   Organizer  @relation(fields: [organizer_id], references: [id])
+  tickets     Ticket[]
+  attendees   Attendee[]
+}
+
+// Define the Ticket model
+model Ticket {
+  id          Int      @id @default(autoincrement())
+  event_id    Int
+  name        String
+  description String?
+  price       Float
+  date        DateTime
+  event       Event    @relation(fields: [event_id], references: [id])
+  bookedTickets BookedTicket[]
+}
+
+// Define the BookedTicket model
+model BookedTicket {
+  id             Int      @id @default(autoincrement())
+  ticket_id      Int
+  user_id        Int
+  date_purchased DateTime @default(now())
+  qr_code        String?
+  ticket         Ticket   @relation(fields: [ticket_id], references: [id])
+  user           User     @relation(fields: [user_id], references: [id])
+
+  Attendee Attendee[]
+}
+
+// Define the Attendee model
+model Attendee {
+  id        Int      @id @default(autoincrement())
+  user_id   Int
+  event_id  Int
+  ticket_id Int
+  user      User     @relation(fields: [user_id], references: [id])
+  event     Event    @relation(fields: [event_id], references: [id])
+  bookedTicket BookedTicket @relation(fields: [ticket_id], references: [id])
+}
